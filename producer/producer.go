@@ -129,7 +129,6 @@ func publish(ctx context.Context, publishOkCh <-chan struct{}, confirmsCh chan<-
 			case <-publishOkCh:
 				Log.Println("producer: got the OK to publish")
 				canPublish = true
-				break
 			case <-time.After(time.Second):
 				WarnLog.Println("producer: still waiting on the OK to publish...")
 				continue
@@ -166,14 +165,13 @@ func publish(ctx context.Context, publishOkCh <-chan struct{}, confirmsCh chan<-
 			return
 		case confirmsCh <- dConfirmation:
 			Log.Println("producer: delivered deferred confirm to handler")
-			break
 		}
 
 		select {
 		case <-confirmsDoneCh:
 			Log.Println("producer: stopping, all confirms seen")
 			return
-		case <-time.After(time.Millisecond * 250):
+		case <-time.After(time.Millisecond * 100):
 			if *continuous {
 				continue
 			} else {
@@ -202,7 +200,7 @@ func startConfirmHandler(publishOkCh chan<- struct{}, confirmsCh <-chan *amqp.De
 				exitConfirmHandler(confirms, confirmsDoneCh)
 				return
 			default:
-				break
+				// no-op
 			}
 
 			outstandingConfirmationCount := len(confirms)
